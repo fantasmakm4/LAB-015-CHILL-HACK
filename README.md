@@ -1,91 +1,79 @@
-![Infografía panorámica FANTASMA para Chill Hack. El avatar de calavera encapuchada con cuernos, ojos rojos y alas aparece frente a una luna roja y un portátil FANTASMA. La portada identifica TryHackMe, dificultad Fácil, Ubuntu 20.04.6 e IP de la sesión. Resume los servicios FTP 21, SSH 22 y HTTP 80 con sus versiones, y muestra la cadena desde FTP anónimo y la nota, pasando por ejecución web como www-data y el script helpline.sh como apaar, hasta SSH como anurodh y escalada a root por el grupo Docker. Incluye herramientas, ausencia de CVE confirmada, resultados sin los valores de las banderas y recomendaciones de seguridad.](04-Imagenes/LAB-015-CHILL-HACK-Diagrama-Ataque.png)
+![Portada oficial FANTASMA — LAB-015 Chill Hack. Infografía panorámica en paleta cian, azul oscuro y rojo. El avatar FANTASMA, una calavera encapuchada con cuernos, ojos rojos y alas de murciélago, aparece ante una luna roja con el portátil FANTASMA. Los paneles muestran TryHackMe, dificultad Fácil, Ubuntu 20.04.6 e IP de sesión; los servicios FTP 21, SSH 22 y HTTP 80 con sus versiones; la cadena de reconocimiento, acceso FTP anónimo, ejecución web como www-data, paso por apaar y anurodh y escalada a root mediante Docker. Incluye herramientas y mitigaciones. Indica que no se confirmó CVE y que se recuperaron dos banderas sin revelar sus valores.](04-Imagenes/LAB-015-CHILL-HACK.png)
 
-# LAB-015 — CHILL HACK
+# 😈 FANTASMA | LAB-015 — CHILL HACK
 
-## Descripción de la portada
+**TryHackMe | Fácil | Ubuntu 20.04.6 | FTP, SSH, HTTP | Ejecución remota de comandos | Escalada por sudo y Docker | Acceso root confirmado | Banderas recuperadas, valores omitidos**
 
-La infografía panorámica usa la paleta cian, azul oscuro y rojo para Chill Hack. En el centro aparece el avatar FANTASMA de calavera encapuchada, cuernos, ojos rojos y alas de murciélago, con luna roja y portátil FANTASMA. Los paneles indican plataforma, dificultad, sistema operativo e IP observada, y detallan los banners Nmap de los tres puertos abiertos. La secuencia visual documenta reconocimiento, acceso inicial por FTP anónimo, ejecución de comandos web como `www-data`, paso a `apaar`, acceso SSH como `anurodh` y escalada a root por Docker. La franja inferior resume herramientas, mitigaciones y dos banderas recuperadas sin mostrar sus valores. No atribuye CVE porque no se verificó ninguna para esta máquina.
+## Información del laboratorio
 
-| Campo | Detalle |
-|---|---|
-| Plataforma | TryHackMe |
-| Máquina | Chill Hack |
-| Dificultad | Fácil |
-| Estado de la máquina | Completada. Acceso `root` confirmado |
-| Estado de envío | Se recuperaron las dos banderas. No se verificó su aceptación en TryHackMe |
-| Sistema operativo | Ubuntu 20.04.6 LTS |
-| IP de esta sesión | `10.65.175.242` (IP dinámica del laboratorio) |
-| CVE | No se verificó una CVE aplicable a los hallazgos |
-| Banderas | User y Root recuperadas. Valores omitidos |
-| Autor | FANTASMA — [fantasmakm4](https://github.com/fantasmakm4) |
+- Plataforma: TryHackMe
+- Máquina: Chill Hack
+- IP observada: `10.65.175.242` (dinámica de la sesión)
+- Dificultad: Fácil
+- Sistema: Ubuntu 20.04.6 LTS
+- Estado: acceso root confirmado
+- Banderas: User y Root recuperadas, sin publicar sus valores
+- Cuestionario: no se verificó la aceptación de las respuestas en TryHackMe
+- CVE: no se verificó una CVE aplicable
+- Autor: FANTASMA
 
-## Objetivo
+## 1. Objetivo
 
-Enumerar la superficie de Chill Hack, obtener acceso inicial, elevar privilegios y recuperar las banderas de usuario y root sin publicar sus valores.
+Enumerar la máquina, identificar servicios y vulnerabilidades, obtener acceso inicial y escalar privilegios hasta root.
 
-## Cadena de ataque
+## 2. Reconocimiento
 
-FTP anónimo y nota → enumeración web → formulario de comandos `/secret/` como `www-data` → script `helpline.sh` ejecutado como `apaar` → SSH como `anurodh` → grupo `docker` → shell root.
+Nmap identificó FTP en 21/tcp, SSH en 22/tcp y HTTP en 80/tcp. El escaneo de los 1.000 puertos TCP más comunes confirmó esos tres puertos abiertos. FTP permitió inicio anónimo y mostró `note.txt`.
 
-## Información técnica
+## 3. Enumeración
 
-| Puerto | Servicio | Banner observado |
+Gobuster encontró `/secret/`. El formulario POST de esa ruta recibía el campo `command`. La nota FTP advertía que se filtraban cadenas introducidas en un comando.
+
+## 4. Explotación y acceso inicial
+
+La aplicación ejecutaba comandos como `www-data`. El filtro de tokens exactos no impedía el uso de comandos alternativos. La regla sudo permitía a `www-data` ejecutar `/home/apaar/.helpline.sh` como `apaar`. El script ejecutaba directamente el mensaje recibido, lo que permitió ejecutar comandos con esa cuenta y recuperar la User Flag.
+
+## 5. Escalada de privilegios
+
+Se inició sesión por SSH como `anurodh`. La pertenencia al grupo `docker` permitió montar el sistema raíz del anfitrión desde un contenedor y usar `chroot` para obtener root. Se confirmó el nivel con `whoami` y se recuperó la Root Flag.
+
+## 6. Servicios identificados
+
+| Puerto | Servicio | Versión observada |
 |---|---|---|
-| 21/tcp | FTP | vsftpd 3.0.5, inicio anónimo habilitado |
+| 21/tcp | FTP | vsftpd 3.0.5 |
 | 22/tcp | SSH | OpenSSH 8.2p1 Ubuntu 4ubuntu0.13 |
-| 80/tcp | HTTP | Apache httpd 2.4.41 (Ubuntu) |
+| 80/tcp | HTTP | Apache 2.4.41 (Ubuntu) |
 
-El escaneo de los 1.000 puertos TCP más comunes confirmó abiertos 21, 22 y 80. La configuración de Apache contenía un VirtualHost con `DocumentRoot /var/www/files` y puerto 9001 local. Los intentos desde Parrot al puerto 9001 fueron rechazados, por lo que no se documenta como servicio remoto accesible.
+Apache tenía configurado un VirtualHost local en el puerto 9001. Las conexiones desde Parrot fueron rechazadas, por lo que no se considera un puerto remoto abierto.
 
-## Metodología y hallazgos
-
-1. **Reconocimiento.** Nmap identificó FTP, SSH y HTTP. FTP permitió acceso anónimo y expuso `note.txt`.
-2. **Enumeración.** Gobuster encontró `/secret/`. La nota FTP anticipaba filtrado de texto en comandos.
-3. **Explotación.** El formulario POST de `/secret/` ejecutaba comandos como `www-data`. Se verificó con `id`, `pwd` y `whoami`. El filtro compara tokens contra una lista de bloqueo, una protección insuficiente.
-4. **Acceso como `apaar`.** `sudo -l` permitió ejecutar `/home/apaar/.helpline.sh` como `apaar`. El script ejecutaba directamente el mensaje introducido. Se recuperó la bandera de usuario.
-5. **Acceso como `anurodh`.** Se validó el acceso SSH de la cuenta y se comprobó que pertenecía al grupo `docker`.
-6. **Escalada a root.** Docker permitió montar el sistema raíz del anfitrión en un contenedor y ejecutar `chroot`. `whoami` confirmó `root`, y se recuperó la bandera root.
-
-## Herramientas y comandos ejecutados
+## 7. Herramientas utilizadas
 
 Nmap, Gobuster, curl, Firefox, SSH, Docker, `find`, `grep`, `sed`, `mysql`, `sudo`, `printf`, `id`, `pwd`, `whoami` y `wc`.
 
-Reconocimiento inicial:
+El registro de los comandos ejecutados está en [06-Comandos/COMANDOS.md](06-Comandos/COMANDOS.md).
 
-```bash
-sudo nmap -Pn -sV -sC -T4 -p21,22,80 10.65.175.242
-sudo nmap -Pn --top-ports 1000 -T4 10.65.175.242
-gobuster dir -u http://10.65.175.242 -w /usr/share/wordlists/dirb/common.txt
-```
+## 8. Resultados
 
-Enumeración de FTP y ejecución web observadas:
+Acceso root confirmado y dos banderas recuperadas. No se incluyen contraseñas ni valores de las banderas. No se verificó el envío de respuestas en el cuestionario TryHackMe.
 
-```bash
-curl -sS --user anonymous:anonymous ftp://10.65.175.242/note.txt
-curl -sS -X POST -d 'command=id' http://10.65.175.242/secret/
-curl -sS -X POST -d 'command=sudo -l' http://10.65.175.242/secret/
-```
+## 9. Documentación
 
-Escalada final observada:
+- [Reconocimiento](02-Reconocimiento/RECONOCIMIENTO.md)
+- [Explotación y escalada](03-Explotacion/EXPLOTACION-Y-ESCALADA.md)
+- [Informe técnico](01-Informes/INFORME-TECNICO.md)
+- [Evidencias públicas](05-Evidencias/publico/README.md)
+- [Portada oficial](04-Imagenes/LAB-015-CHILL-HACK.png)
+- [Sala TryHackMe](https://tryhackme.com/room/chillhack)
 
-```bash
-docker run -v /:/mnt --rm -it alpine chroot /mnt /bin/sh
-```
+## 10. Conclusiones y recomendaciones
 
-## Resultado
+1. Eliminar la ejecución de comandos del sistema desde formularios web.
+2. No ejecutar entradas de usuario como código shell.
+3. Aplicar mínimo privilegio en sudoers y revisar scripts llamados con privilegios.
+4. No incluir usuarios ordinarios en el grupo Docker.
+5. Retirar secretos del código fuente y rotar credenciales expuestas.
+6. Limitar servicios locales a las interfaces necesarias.
 
-Acceso root confirmado. Las dos banderas fueron recuperadas, pero sus contenidos no se incluyen. La aceptación de las respuestas en el cuestionario de TryHackMe no se verificó.
-
-## Documentación
-
-- [Informe técnico completo](01-Informes/Informe-Pentesting.md)
-- [Sala oficial Chill Hack](https://tryhackme.com/room/chillhack)
-
-## Recomendaciones de seguridad
-
-- Eliminar la ejecución de comandos del sistema desde formularios web. Aplicar validación por lista permitida y APIs seguras.
-- No ejecutar entradas de usuario como código shell en scripts.
-- Reducir las reglas sudo al mínimo privilegio y limitar los argumentos permitidos.
-- Retirar las cuentas ordinarias del grupo Docker, que permite control equivalente a root.
-- Retirar secretos del código fuente, restringir su acceso y rotar credenciales expuestas.
-- Restringir servicios locales a interfaces y redes necesarias.
+---
+**FANTASMA | LAB-015 | CHILL HACK | ACCESO ROOT CONFIRMADO**
