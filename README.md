@@ -1,6 +1,10 @@
-![Portada oficial FANTASMA — LAB-015 Chill Hack](04-Imagenes/LAB-015-CHILL-HACK-Diagrama-Ataque.png)
+![Infografía panorámica FANTASMA para Chill Hack. El avatar de calavera encapuchada con cuernos, ojos rojos y alas aparece frente a una luna roja y un portátil FANTASMA. La portada identifica TryHackMe, dificultad Fácil, Ubuntu 20.04.6 e IP de la sesión. Resume los servicios FTP 21, SSH 22 y HTTP 80 con sus versiones, y muestra la cadena desde FTP anónimo y la nota, pasando por ejecución web como www-data y el script helpline.sh como apaar, hasta SSH como anurodh y escalada a root por el grupo Docker. Incluye herramientas, ausencia de CVE confirmada, resultados sin los valores de las banderas y recomendaciones de seguridad.](04-Imagenes/LAB-015-CHILL-HACK-Diagrama-Ataque.png)
 
 # LAB-015 — CHILL HACK
+
+## Descripción de la portada
+
+La infografía panorámica usa la paleta cian, azul oscuro y rojo para Chill Hack. En el centro aparece el avatar FANTASMA de calavera encapuchada, cuernos, ojos rojos y alas de murciélago, con luna roja y portátil FANTASMA. Los paneles indican plataforma, dificultad, sistema operativo e IP observada, y detallan los banners Nmap de los tres puertos abiertos. La secuencia visual documenta reconocimiento, acceso inicial por FTP anónimo, ejecución de comandos web como `www-data`, paso a `apaar`, acceso SSH como `anurodh` y escalada a root por Docker. La franja inferior resume herramientas, mitigaciones y dos banderas recuperadas sin mostrar sus valores. No atribuye CVE porque no se verificó ninguna para esta máquina.
 
 | Campo | Detalle |
 |---|---|
