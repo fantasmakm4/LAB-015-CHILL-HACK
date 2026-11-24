@@ -2,7 +2,7 @@
 
 # 😈 FANTASMA | LAB-015 — CHILL HACK
 
-**TryHackMe | Fácil | Ubuntu 20.04.6 | FTP, SSH, HTTP | Ejecución remota de comandos | Escalada por sudo y Docker | Acceso root confirmado | Banderas recuperadas, valores omitidos**
+**TryHackMe | FANTASMA LAB-015 CHILL HACK | Parrot OS, Nmap, FTP anónimo, Gobuster, ejecución de comandos web, escalada sudo a apaar, SSH como anurodh y Docker a ROOT | Máquina comprometida, ROOT confirmado | 2 banderas recuperadas, valores omitidos**
 
 ## Información del laboratorio
 
